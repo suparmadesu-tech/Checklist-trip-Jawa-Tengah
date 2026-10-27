@@ -28,7 +28,9 @@ button{padding:.5rem .8rem;border-radius:8px;border:1px solid var(--line);backgr
 .note{color:var(--muted);font-size:.9rem;margin:.25rem 0 .75rem}
 ul{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 li{display:flex;align-items:center;gap:.5rem;padding:.65rem .75rem .65rem .4rem;border-top:1px solid var(--line)}
-.h{border:0;background:none;color:var(--muted);font-size:1.3rem;line-height:1;padding:.4rem .35rem;touch-action:none;cursor:grab}
+.h{border:0;background:none;color:var(--muted);font-size:1.3rem;line-height:1;padding:.4rem .35rem;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.mv{display:flex;flex-direction:column;flex:none}
+.mv button{border:0;background:none;color:var(--muted);font-size:.75rem;line-height:1;padding:.4rem .5rem}
 li.drag{background:var(--bg);box-shadow:0 4px 14px rgba(0,0,0,.28);position:relative;z-index:2}
 li:first-child{border-top:0}
 li .t{flex:1}li .t small{display:block;color:var(--muted);font-size:.82rem}
@@ -68,7 +70,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-off
 <div id="toast" role="status"><span id="toast-t"></span><button id="toast-b" type="button">Batalkan</button></div>
 <script>
 // Isi dua nilai ini dari Supabase: Project Settings > API
-var CFG={url:"https://sklbzowusbpskwbxdrie.supabase.co",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNrbGJ6b3d1c2Jwc2t3YnhkcmllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwNDUwMjksImV4cCI6MjEwODYyMTAyOX0.v9xtEMag-qjic0lo4lYiUVCrVRXPIX6NnskPlhCtbxg"};
+var CFG={url:"https://sklbzowusbpskwbxdrie.supabase.co",key:"sb_publishable_oV75JSPiIuuXxFqCXQsIpw_IBS77abl"};
 
 var GROUPS=[
 {id:"w",name:"Wajib",note:"Tidak boleh ketinggalan. Satu centang untuk berdua.",items:[["KTP, SIM C, dan STNK motor"],["Uang tunai dan e-wallet"],["Helm layak pakai"],["Jas hujan 2 set","Sore di Kopeng sering hujan"],["Sarung tangan berkendara"],["HP, powerbank, dan kabel charger"],["P3K dan obat pribadi"],["Headlamp atau senter + baterai cadangan"],["Tenda lengkap (flysheet, pasak, tali)","Sewa di dekat Kopeng, misalnya Mayara Adventure"],["Cek motor: ban, rem, rantai, oli, lampu"],["BBM penuh sebelum berangkat"]]},
@@ -122,7 +124,7 @@ function render(){
   var tabs=$("tabs");tabs.innerHTML="";
   GROUPS.forEach(function(g){var s=stats(g.id),b=el("button");b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",g.id===cur);
     b.innerHTML=g.name+"<span>"+s[0]+"/"+s[1]+"</span>";b.onclick=function(){cur=g.id;render()};tabs.appendChild(b)});
-  var G=GROUPS.filter(function(x){return x.id===cur})[0];$("note").textContent=G.note+" Geser ≡ untuk mengurutkan.";
+  var G=GROUPS.filter(function(x){return x.id===cur})[0];$("note").textContent=G.note+" Geser ≡ atau pakai ▲▼ untuk mengurutkan.";
   var ul=$("list");ul.innerHTML="";
   visible(cur).forEach(function(it){
     var li=el("li"),t=el("div","t");t.textContent=it.title;
@@ -131,7 +133,9 @@ function render(){
     var h=el("button","h");h.type="button";h.textContent="≡";h.setAttribute("aria-label","Geser "+it.title+" (atau tombol panah atas/bawah)");
     h.onpointerdown=function(e){startDrag(e,li,h)};
     h.onkeydown=function(e){if(e.key==="ArrowUp"||e.key==="ArrowDown"){e.preventDefault();moveKey(it.id,e.key==="ArrowUp"?-1:1)}};
-    li.appendChild(h);li.appendChild(t);var all=true;
+    li.appendChild(h);
+    var mvb=el("div","mv");[["▲",-1],["▼",1]].forEach(function(a){var b=el("button");b.type="button";b.textContent=a[0];b.setAttribute("aria-label",(a[1]<0?"Naikkan ":"Turunkan ")+it.title);b.onclick=function(){moveKey(it.id,a[1])};mvb.appendChild(b)});
+    li.appendChild(mvb);li.appendChild(t);var all=true;
     slots(cur).forEach(function(s,idx){
       var w=el("label","cb"),c=document.createElement("input");c.type="checkbox";c.checked=!!S.checks[it.id+"|"+s];
       c.setAttribute("aria-label",it.title+(cur==="p"?(idx?" (Dia)":" (Aku)"):""));
@@ -160,19 +164,23 @@ function applyOrder(ids){
   ids.forEach(function(id,i){var it=S.items.find(function(x){return x.id===id});if(it&&it.sort!==i)setItem(Object.assign({},it,{sort:i}))});
 }
 function startDrag(e,li,h){
-  e.preventDefault();dragging=true;li.classList.add("drag");h.setPointerCapture(e.pointerId);
+  if(e.button>0)return;
+  e.preventDefault();dragging=true;li.classList.add("drag");
   var ul=li.parentNode;
-  h.onpointermove=function(ev){
+  try{h.setPointerCapture(e.pointerId)}catch(x){}
+  function mv(ev){
     if(ev.clientY<90)window.scrollBy(0,-12);else if(ev.clientY>window.innerHeight-90)window.scrollBy(0,12);
     var t=document.elementFromPoint(ul.getBoundingClientRect().left+24,ev.clientY);
     var o=t&&t.closest?t.closest("#list > li"):null;
     if(o&&o!==li){var r=o.getBoundingClientRect();ul.insertBefore(li,ev.clientY>r.top+r.height/2?o.nextSibling:o)}
-  };
-  h.onpointerup=h.onpointercancel=function(){
-    h.onpointermove=h.onpointerup=h.onpointercancel=null;li.classList.remove("drag");
+  }
+  function end(){
+    document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",end);document.removeEventListener("pointercancel",end);
+    li.classList.remove("drag");
     var ids=Array.prototype.map.call(ul.children,function(l){return l.dataset.id});
     dragging=false;applyOrder(ids);render();
-  };
+  }
+  document.addEventListener("pointermove",mv);document.addEventListener("pointerup",end);document.addEventListener("pointercancel",end);
 }
 function moveKey(id,d){
   var ids=visible(cur).map(function(x){return x.id}),i=ids.indexOf(id),j=i+d;
