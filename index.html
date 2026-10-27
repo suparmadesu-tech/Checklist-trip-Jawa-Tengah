@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Checklist trip Jawa Tengah</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+:root{--bg:#EDF1F0;--surface:#fff;--ink:#12202B;--muted:#55656F;--line:#CAD5D3;--accent:#0E6F7A;--on:#fff;--hi:#F2C230;--hi-ink:#12202B;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#0F1A1F;--surface:#17252C;--ink:#E8EFEF;--muted:#9DB0B3;--line:#2A3D44;--accent:#4FC1CB;--on:#0F1A1F}}
+*{box-sizing:border-box}html{color-scheme:light dark}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Archivo",system-ui,sans-serif}
+main{max-width:34rem;margin:0 auto;padding:1.25rem 1rem 3rem}
+h1{font-size:1.75rem;line-height:1.15;font-weight:800;margin:.5rem 0 .25rem}
+.sub{color:var(--muted);margin:0 0 1rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.9rem 1rem;margin-bottom:1rem}
+.card b{font-size:1.5rem;font-weight:800}
+.bar{height:10px;border-radius:5px;background:var(--line);margin-top:.6rem;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:repeating-linear-gradient(135deg,var(--hi) 0 10px,var(--hi-ink) 10px 14px);transition:width .25s}
+.row{display:flex;gap:.5rem;align-items:center;justify-content:space-between;flex-wrap:wrap}
+button,input{font:inherit;color:var(--ink)}
+button{padding:.5rem .8rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.tabs{display:flex;gap:.4rem;margin-bottom:.75rem}
+.tabs button{flex:1;font-weight:700;padding:.6rem .25rem}
+.tabs button[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:var(--on)}
+.tabs span{display:block;font-size:.85rem;font-weight:500}
+.note{color:var(--muted);font-size:.9rem;margin:.25rem 0 .75rem}
+ul{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+li{display:flex;align-items:center;gap:.6rem;padding:.65rem .75rem .65rem 1rem;border-top:1px solid var(--line)}
+li:first-child{border-top:0}
+li .t{flex:1}li .t small{display:block;color:var(--muted);font-size:.82rem}
+li.done .t{color:var(--muted);text-decoration:line-through}
+.cb{display:flex;flex-direction:column;align-items:center;font-size:.72rem;color:var(--muted);gap:.1rem}
+input[type=checkbox]{width:1.35rem;height:1.35rem;accent-color:var(--accent);margin:0}
+.x{border:0;background:none;color:var(--muted);font-size:1.3rem;line-height:1;padding:.2rem .45rem}
+.add{display:flex;gap:.4rem;margin-top:.75rem;flex-wrap:wrap}
+.add input{flex:1 1 9rem;padding:.55rem .7rem;border-radius:8px;border:1px solid var(--line);background:var(--surface)}
+.add button{background:var(--accent);border-color:var(--accent);color:var(--on);font-weight:700}
+details{margin-top:.75rem;color:var(--muted);font-size:.9rem}
+details li{padding:.4rem .75rem}
+.chip{font-size:.85rem;color:var(--muted)}
+.chip.bad{color:#B3541E}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(1rem + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:.6rem .9rem;border-radius:8px;display:none;gap:.8rem;align-items:center}
+#toast button{background:none;border:0;color:var(--hi);font-weight:700;padding:0}
+button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Checklist trip Jawa Tengah</h1>
+<p class="sub">29 Oktober – 1 November 2026, motor berdua.</p>
+<div class="card" id="who" hidden>
+  <p style="margin:0 0 .5rem">Kamu yang mana di tautan ini?</p>
+  <div class="row"><button id="s-a" type="button">Saya pemilik tautan</button><button id="s-b" type="button">Saya teman</button></div>
+</div>
+<div class="card"><b id="count">0 / 0</b> <span class="sub">sudah siap</span><div class="bar"><i id="fill"></i></div></div>
+<div class="row" style="margin-bottom:.75rem"><span class="chip" id="chip"></span><button id="share" type="button">Salin tautan</button></div>
+<div class="tabs" role="tablist" id="tabs"></div>
+<p class="note" id="note"></p>
+<ul id="list"></ul>
+<form class="add" id="add"><input id="n-title" maxlength="120" placeholder="Nama barang" aria-label="Nama barang" required><input id="n-note" maxlength="200" placeholder="Catatan (opsional)" aria-label="Catatan"><button type="submit">Tambah</button></form>
+<details id="hid"><summary id="hid-s"></summary><ul id="hid-l"></ul></details>
+</main>
+<div id="toast" role="status"><span id="toast-t"></span><button id="toast-b" type="button">Batalkan</button></div>
+<script>
+// Isi dua nilai ini dari Supabase: Project Settings > API
+var CFG={url:"PASTE_SUPABASE_URL",key:"PASTE_ANON_KEY"};
+
+var GROUPS=[
+{id:"w",name:"Wajib",note:"Tidak boleh ketinggalan. Satu centang untuk berdua.",items:[["KTP, SIM C, dan STNK motor"],["Uang tunai dan e-wallet"],["Helm layak pakai"],["Jas hujan 2 set","Sore di Kopeng sering hujan"],["Sarung tangan berkendara"],["HP, powerbank, dan kabel charger"],["P3K dan obat pribadi"],["Headlamp atau senter + baterai cadangan"],["Tenda lengkap (flysheet, pasak, tali)","Sewa di dekat Kopeng, misalnya Mayara Adventure"],["Cek motor: ban, rem, rantai, oli, lampu"],["BBM penuh sebelum berangkat"]]},
+{id:"b",name:"Bersama",note:"Dibagi berdua, cukup satu set.",items:[["Matras 2 dan terpal alas"],["Kompor mini, gas, dan korek"],["Nesting dan pisau lipat"],["Air minum cadangan"],["Makanan, kopi/teh, dan camilan"],["Lampu tenda"],["Kabel panjang atau terminal kecil","Lahan camp menyediakan listrik"],["Kantong sampah dan tisu basah"],["Tali jemuran"],["Bungee cord dan dry bag","Untuk mengikat barang di motor"],["Gembok kecil"],["Kamera atau tripod (opsional)"]]},
+{id:"p",name:"Pribadi",note:"Masing-masing menyiapkan sendiri. Kamu hanya bisa mencentang kolom “Aku”.",items:[["Pakaian untuk 4 hari"],["Jaket tebal"],["Kupluk dan sarung tangan hangat","Malam di Kopeng sekitar 10–15°C"],["Kaus kaki tebal"],["Sleeping bag"],["Bantal tiup"],["Sandal dan sepatu nyaman"],["Perlengkapan mandi dan handuk kecil"],["Masker"],["Botol minum"],["Dompet"],["Charger pribadi"],["Obat yang rutin diminum"]]}
+];
+var DEFAULTS=[];
+GROUPS.forEach(function(g){g.items.forEach(function(it,i){DEFAULTS.push({id:g.id+i,grp:g.id,title:it[0],note:it[1]||"",hidden:false,sort:i})})});
+
+function $(i){return document.getElementById(i)}
+function rnd(n){var a=new Uint8Array(n),s="",c="abcdefghjkmnpqrstuvwxyz23456789";crypto.getRandomValues(a);a.forEach(function(b){s+=c[b%31]});return s}
+var code=(location.hash||"").slice(1);
+if(code.length<10){code=rnd(14);history.replaceState(null,"","#"+code)}
+var KEY="trip:"+code,S,cur="w",busy=false,online=true,toastT;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.items)S={items:DEFAULTS.slice(),checks:{},q:[]};
+var slot="";try{slot=localStorage.getItem("slot")||""}catch(e){}
+var sb=(window.supabase&&CFG.url.indexOf("PASTE")<0)?window.supabase.createClient(CFG.url,CFG.key,{global:{headers:{"x-trip-code":code}},auth:{persistSession:false}}):null;
+
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function queue(o){S.q.push(o);persist();flush()}
+async function flush(){
+  if(!sb||busy)return;busy=true;
+  try{
+    while(S.q.length){var o=S.q[0],r=await sb.from(o.t==="item"?"items":"checks").upsert(o.row);if(r.error)throw r.error;S.q.shift();persist()}
+    await pull();online=true;
+  }catch(e){online=false}
+  busy=false;render();
+}
+async function pull(){
+  var a=await sb.from("items").select("*").eq("trip_code",code);if(a.error)throw a.error;
+  var have={};a.data.forEach(function(r){have[r.id]=1});
+  var miss=DEFAULTS.filter(function(d){return !have[d.id]}).map(function(d){return Object.assign({trip_code:code},d)});
+  if(miss.length){var u=await sb.from("items").upsert(miss,{onConflict:"trip_code,id",ignoreDuplicates:true});if(u.error)throw u.error;a=await sb.from("items").select("*").eq("trip_code",code);if(a.error)throw a.error}
+  var c=await sb.from("checks").select("*").eq("trip_code",code);if(c.error)throw c.error;
+  if(S.q.length)return;
+  S.items=a.data;S.checks={};c.data.forEach(function(r){S.checks[r.item_id+"|"+r.slot]=r.done});persist();
+}
+function setItem(it){var i=S.items.findIndex(function(x){return x.id===it.id});if(i<0)S.items.push(it);else S.items[i]=it;queue({t:"item",row:Object.assign({trip_code:code},it)})}
+function setCheck(id,s,v){S.checks[id+"|"+s]=v;queue({t:"check",row:{trip_code:code,item_id:id,slot:s,done:v}})}
+function other(){return slot==="a"?"b":"a"}
+function slots(g){return g==="p"?[slot||"a",other()]:["x"]}
+function visible(g){return S.items.filter(function(i){return i.grp===g&&!i.hidden}).sort(function(a,b){return a.sort-b.sort})}
+function stats(g){var d=0,n=0;visible(g).forEach(function(it){slots(g).forEach(function(s){n++;if(S.checks[it.id+"|"+s])d++})});return[d,n]}
+function toast(msg,fn){$("toast-t").textContent=msg;$("toast").style.display="flex";$("toast-b").onclick=function(){fn();$("toast").style.display="none"};clearTimeout(toastT);toastT=setTimeout(function(){$("toast").style.display="none"},6000)}
+function el(t,c){var e=document.createElement(t);if(c)e.className=c;return e}
+
+function render(){
+  $("who").hidden=!!slot;
+  var tabs=$("tabs");tabs.innerHTML="";
+  GROUPS.forEach(function(g){var s=stats(g.id),b=el("button");b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",g.id===cur);
+    b.innerHTML=g.name+"<span>"+s[0]+"/"+s[1]+"</span>";b.onclick=function(){cur=g.id;render()};tabs.appendChild(b)});
+  var G=GROUPS.filter(function(x){return x.id===cur})[0];$("note").textContent=G.note;
+  var ul=$("list");ul.innerHTML="";
+  visible(cur).forEach(function(it){
+    var li=el("li"),t=el("div","t");t.textContent=it.title;
+    if(it.note){var m=document.createElement("small");m.textContent=it.note;t.appendChild(m)}
+    li.appendChild(t);var all=true;
+    slots(cur).forEach(function(s,idx){
+      var w=el("label","cb"),c=document.createElement("input");c.type="checkbox";c.checked=!!S.checks[it.id+"|"+s];
+      c.setAttribute("aria-label",it.title+(cur==="p"?(idx?" (Dia)":" (Aku)"):""));
+      if(!c.checked)all=false;
+      if(cur==="p"&&idx===1)c.disabled=true;
+      c.onchange=function(){setCheck(it.id,s,c.checked);render()};
+      w.appendChild(c);if(cur==="p"){var l=document.createElement("span");l.textContent=idx?"Dia":"Aku";w.appendChild(l)}
+      li.appendChild(w)});
+    if(all)li.classList.add("done");
+    var x=el("button","x");x.type="button";x.textContent="×";x.setAttribute("aria-label","Sembunyikan "+it.title);
+    x.onclick=function(){setItem(Object.assign({},it,{hidden:true}));render();toast("“"+it.title+"” disembunyikan",function(){setItem(Object.assign({},it,{hidden:false}));render()})};
+    li.appendChild(x);ul.appendChild(li)});
+  var hs=S.items.filter(function(i){return i.hidden});
+  $("hid").hidden=!hs.length;$("hid-s").textContent="Item tersembunyi ("+hs.length+")";
+  var hl=$("hid-l");hl.innerHTML="";
+  hs.forEach(function(it){var li=el("li"),t=el("div","t");t.textContent=it.title;var b=el("button");b.type="button";b.textContent="Kembalikan";
+    b.onclick=function(){setItem(Object.assign({},it,{hidden:false}));render()};li.appendChild(t);li.appendChild(b);hl.appendChild(li)});
+  var d=0,n=0;GROUPS.forEach(function(g){var s=stats(g.id);d+=s[0];n+=s[1]});
+  $("count").textContent=d+" / "+n;$("fill").style.width=(n?d/n*100:0)+"%";
+  var chip=$("chip");chip.className="chip";
+  if(!sb)chip.textContent="Mode lokal: Supabase belum diisi";
+  else if(!online||S.q.length){chip.textContent="Offline, "+S.q.length+" perubahan menunggu";chip.className="chip bad"}
+  else chip.textContent="Tersambung dan tersinkron";
+}
+$("add").onsubmit=function(e){e.preventDefault();var t=$("n-title").value.trim();if(!t)return;
+  var dup=visible(cur).some(function(i){return i.title.toLowerCase()===t.toLowerCase()});
+  if(dup){toast("Barang itu sudah ada",function(){});return}
+  var mx=S.items.filter(function(i){return i.grp===cur}).reduce(function(m,i){return Math.max(m,i.sort)},-1);
+  setItem({id:rnd(10),grp:cur,title:t,note:$("n-note").value.trim(),hidden:false,sort:mx+1});
+  $("n-title").value="";$("n-note").value="";render()};
+function pick(s){slot=s;try{localStorage.setItem("slot",s)}catch(e){}render()}
+$("s-a").onclick=function(){pick("a")};$("s-b").onclick=function(){pick("b")};
+$("share").onclick=function(){var u=location.href;(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(function(){toast("Tautan disalin",function(){})},function(){prompt("Salin tautan ini:",u)})};
+window.addEventListener("online",flush);window.addEventListener("focus",flush);
+setInterval(flush,8000);render();flush();
+</script>
+</body>
+</html>
