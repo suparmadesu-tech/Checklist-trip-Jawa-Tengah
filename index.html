@@ -4,65 +4,79 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Checklist trip Jawa Tengah</title>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
-:root{--bg:#EDF1F0;--surface:#fff;--ink:#12202B;--muted:#55656F;--line:#CAD5D3;--accent:#0E6F7A;--on:#fff;--hi:#F2C230;--hi-ink:#12202B;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root{--bg:#0F1A1F;--surface:#17252C;--ink:#E8EFEF;--muted:#9DB0B3;--line:#2A3D44;--accent:#4FC1CB;--on:#0F1A1F}}
+:root{--bg:#EEF3F1;--bg2:#DFEBE7;--surface:#fff;--ink:#12262A;--muted:#5E7378;--line:#D5E0DD;--accent:#1F7A6D;--on:#fff;--hi:#F6C945;--shadow:0 1px 2px rgba(18,38,42,.06),0 8px 20px rgba(18,38,42,.07);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#0B1416;--bg2:#10201F;--surface:#14262A;--ink:#E6F0EE;--muted:#93ABAD;--line:#243C40;--accent:#4FC9B6;--on:#08201C;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 24px rgba(0,0,0,.3)}}
 *{box-sizing:border-box}html{color-scheme:light dark}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Archivo",system-ui,sans-serif}
-main{max-width:34rem;margin:0 auto;padding:1.25rem 1rem 3rem}
-h1{font-size:1.75rem;line-height:1.15;font-weight:800;margin:.5rem 0 .25rem}
-.sub{color:var(--muted);margin:0 0 1rem}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.9rem 1rem;margin-bottom:1rem}
-.card b{font-size:1.5rem;font-weight:800}
-.bar{height:10px;border-radius:5px;background:var(--line);margin-top:.6rem;overflow:hidden}
-.bar i{display:block;height:100%;width:0;background:repeating-linear-gradient(135deg,var(--hi) 0 10px,var(--hi-ink) 10px 14px);transition:width .25s}
-.row{display:flex;gap:.5rem;align-items:center;justify-content:space-between;flex-wrap:wrap}
+body{margin:0;color:var(--ink);background:linear-gradient(180deg,var(--bg2),var(--bg) 340px) var(--bg);font:16px/1.5 "Plus Jakarta Sans",system-ui,-apple-system,sans-serif;min-height:100vh}
+main{max-width:34rem;margin:0 auto;padding:1rem 1rem 3.5rem}
+.hero{position:relative;overflow:hidden;border-radius:24px;padding:1.5rem 1.35rem 1.35rem;color:#fff;background:linear-gradient(160deg,#0E4A4B,#1F7A6D 68%,#47AB97);box-shadow:var(--shadow);margin-bottom:1.1rem}
+.hero svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.hero>:not(svg){position:relative}
+h1{font-size:1.6rem;line-height:1.2;font-weight:800;margin:0 0 .2rem;letter-spacing:-.01em}
+.sub{margin:0;color:rgba(255,255,255,.82);font-size:.92rem}
+.prog{display:flex;align-items:baseline;gap:.5rem;margin-top:1.4rem}
+.prog b{font-size:2.1rem;font-weight:800;line-height:1}
+.prog span{color:rgba(255,255,255,.82);font-size:.92rem}
+.bar{height:8px;border-radius:99px;background:rgba(255,255,255,.22);margin-top:.6rem;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--hi);transition:width .3s}
+.card{background:var(--surface);border-radius:18px;padding:1rem;box-shadow:var(--shadow);margin-bottom:1rem}
 button,input{font:inherit;color:var(--ink)}
-button{padding:.5rem .8rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
-.tabs{display:flex;gap:.4rem;margin-bottom:.75rem}
-.tabs button{flex:1;font-weight:700;padding:.6rem .25rem}
-.tabs button[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:var(--on)}
-.tabs span{display:block;font-size:.85rem;font-weight:500}
-.note{color:var(--muted);font-size:.9rem;margin:.25rem 0 .75rem}
-ul{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-li{display:flex;align-items:center;gap:.5rem;padding:.65rem .75rem .65rem .4rem;border-top:1px solid var(--line)}
-.h{border:0;background:none;color:var(--muted);font-size:1.3rem;line-height:1;padding:.4rem .35rem;touch-action:none;cursor:grab}
-li.drag{background:var(--bg);box-shadow:0 4px 14px rgba(0,0,0,.28);position:relative;z-index:2}
-li:first-child{border-top:0}
-li .t{flex:1}li .t small{display:block;color:var(--muted);font-size:.82rem}
-li.done .t{color:var(--muted);text-decoration:line-through}
-.cb{display:flex;flex-direction:column;align-items:center;font-size:.72rem;color:var(--muted);gap:.1rem}
-input[type=checkbox]{width:1.35rem;height:1.35rem;accent-color:var(--accent);margin:0}
-.x{border:0;background:none;color:var(--muted);font-size:1.3rem;line-height:1;padding:.2rem .45rem}
-.add{display:flex;gap:.4rem;margin-top:.75rem;flex-wrap:wrap}
-.add input{flex:1 1 9rem;padding:.55rem .7rem;border-radius:8px;border:1px solid var(--line);background:var(--surface)}
-.add button{background:var(--accent);border-color:var(--accent);color:var(--on);font-weight:700}
-details{margin-top:.75rem;color:var(--muted);font-size:.9rem}
-details li{padding:.4rem .75rem}
-.chip{font-size:.85rem;color:var(--muted)}
-.chip.bad{color:#B3541E}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(1rem + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:.6rem .9rem;border-radius:8px;display:none;gap:.8rem;align-items:center}
+button{cursor:pointer}
+.pill{padding:.45rem .9rem;border-radius:99px;border:1px solid var(--line);background:var(--surface);font-size:.88rem;font-weight:600}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.9rem}
+.chip{display:inline-flex;align-items:center;gap:.45rem;font-size:.85rem;color:var(--muted)}
+.chip::before{content:"";width:.55rem;height:.55rem;border-radius:50%;background:#3DB88B}
+.chip.bad::before{background:#E08A3C}
+.tabs{display:flex;gap:.25rem;padding:.3rem;background:var(--surface);border-radius:16px;box-shadow:var(--shadow)}
+.tabs button{flex:1;border:0;background:none;border-radius:12px;padding:.55rem .2rem;font-weight:700;color:var(--muted);transition:background .15s}
+.tabs button[aria-selected=true]{background:var(--accent);color:var(--on)}
+.tabs span{display:block;font-size:.78rem;font-weight:500;opacity:.85}
+.note{color:var(--muted);font-size:.88rem;margin:.9rem .25rem .7rem}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:.55rem}
+li{display:flex;align-items:center;gap:.55rem;padding:.7rem .7rem .7rem .5rem;background:var(--surface);border-radius:16px;box-shadow:var(--shadow);transition:opacity .2s}
+li .t{flex:1;font-weight:500}
+li .t small{display:block;color:var(--muted);font-size:.8rem;font-weight:400}
+li.done{opacity:.62}li.done .t{text-decoration:line-through;text-decoration-color:var(--muted)}
+li.drag{transform:scale(1.02);box-shadow:0 12px 30px rgba(0,0,0,.28);position:relative;z-index:2}
+.h{width:1.6rem;height:2.6rem;padding:0;border:0;flex:none;touch-action:none;cursor:grab;opacity:.5;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 16'%3E%3Cg fill='%238A9FA3'%3E%3Ccircle cx='2.5' cy='3' r='1.3'/%3E%3Ccircle cx='7.5' cy='3' r='1.3'/%3E%3Ccircle cx='2.5' cy='8' r='1.3'/%3E%3Ccircle cx='7.5' cy='8' r='1.3'/%3E%3Ccircle cx='2.5' cy='13' r='1.3'/%3E%3Ccircle cx='7.5' cy='13' r='1.3'/%3E%3C/g%3E%3C/svg%3E") center/10px 16px no-repeat}
+.cb{display:flex;flex-direction:column;align-items:center;gap:.15rem;font-size:.7rem;color:var(--muted)}
+input[type=checkbox]{appearance:none;-webkit-appearance:none;width:1.55rem;height:1.55rem;margin:0;border-radius:50%;border:2px solid var(--line);background:var(--surface) center/70% no-repeat;transition:background-color .15s,border-color .15s}
+input[type=checkbox]:checked{background-color:var(--accent);border-color:var(--accent);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+input[type=checkbox]:disabled{opacity:.5}
+.x{border:0;background:none;color:var(--muted);font-size:1.3rem;line-height:1;padding:.3rem .45rem;opacity:.7}
+.add{display:flex;gap:.5rem;margin-top:1.1rem;flex-wrap:wrap}
+.add input{flex:1 1 9rem;padding:.7rem .9rem;border-radius:14px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow)}
+.add button{padding:.7rem 1.2rem;border-radius:14px;border:0;background:var(--accent);color:var(--on);font-weight:700}
+details{margin-top:1rem;color:var(--muted);font-size:.9rem}
+summary{cursor:pointer;padding:.3rem .25rem}
+details ul{margin-top:.5rem}details li{padding:.5rem .8rem;color:var(--ink);font-size:.9rem}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(1rem + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:.65rem 1rem;border-radius:99px;display:none;gap:.9rem;align-items:center;box-shadow:var(--shadow);max-width:92vw}
 #toast button{background:none;border:0;color:var(--hi);font-weight:700;padding:0}
 button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <main>
+<header class="hero">
+<svg viewBox="0 0 400 190" preserveAspectRatio="xMaxYMax slice" aria-hidden="true"><circle cx="322" cy="56" r="20" fill="#F6C945" opacity=".92"/><path d="M0 190V132l72-52 50 44 66-70 72 86 58-48 82 74v24z" fill="#0A3A3B" opacity=".4"/><path d="M0 190v-34l62-36 58 46 76-62 68 58 62-32 74 48v12z" fill="#0A3A3B" opacity=".55"/></svg>
 <h1>Checklist trip Jawa Tengah</h1>
-<p class="sub">29 Oktober – 1 November 2026, motor berdua.</p>
+<p class="sub">29 Oktober – 1 November 2026 · motor berdua</p>
+<div class="prog"><b id="count">0 / 0</b><span>sudah siap</span></div>
+<div class="bar"><i id="fill"></i></div>
+</header>
 <div class="card" id="who" hidden>
-  <p style="margin:0 0 .5rem">Kamu yang mana di tautan ini?</p>
-  <div class="row"><button id="s-a" type="button">Saya pemilik tautan</button><button id="s-b" type="button">Saya teman</button></div>
+  <p style="margin:0 0 .6rem">Kamu yang mana di tautan ini?</p>
+  <div class="meta" style="margin:0"><button class="pill" id="s-a" type="button">Saya pemilik tautan</button><button class="pill" id="s-b" type="button">Saya teman</button></div>
 </div>
-<div class="card"><b id="count">0 / 0</b> <span class="sub">sudah siap</span><div class="bar"><i id="fill"></i></div></div>
-<div class="row" style="margin-bottom:.75rem"><span class="chip" id="chip"></span><button id="share" type="button">Salin tautan</button></div>
+<div class="meta"><span class="chip" id="chip"></span><button class="pill" id="share" type="button">Salin tautan</button></div>
 <div class="tabs" role="tablist" id="tabs"></div>
 <p class="note" id="note"></p>
 <ul id="list"></ul>
-<form class="add" id="add"><input id="n-title" maxlength="120" placeholder="Nama barang" aria-label="Nama barang" required><input id="n-note" maxlength="200" placeholder="Catatan (opsional)" aria-label="Catatan"><button type="submit">Tambah</button></form>
+<form class="add" id="add"><input id="n-title" maxlength="120" placeholder="Tambah barang baru" aria-label="Nama barang" required><input id="n-note" maxlength="200" placeholder="Catatan (opsional)" aria-label="Catatan"><button type="submit">Tambah</button></form>
 <details id="hid"><summary id="hid-s"></summary><ul id="hid-l"></ul></details>
 </main>
 <div id="toast" role="status"><span id="toast-t"></span><button id="toast-b" type="button">Batalkan</button></div>
@@ -122,13 +136,13 @@ function render(){
   var tabs=$("tabs");tabs.innerHTML="";
   GROUPS.forEach(function(g){var s=stats(g.id),b=el("button");b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",g.id===cur);
     b.innerHTML=g.name+"<span>"+s[0]+"/"+s[1]+"</span>";b.onclick=function(){cur=g.id;render()};tabs.appendChild(b)});
-  var G=GROUPS.filter(function(x){return x.id===cur})[0];$("note").textContent=G.note+" Geser ≡ untuk mengurutkan.";
+  var G=GROUPS.filter(function(x){return x.id===cur})[0];$("note").textContent=G.note+" Tahan titik-titik di kiri, lalu geser untuk mengurutkan.";
   var ul=$("list");ul.innerHTML="";
   visible(cur).forEach(function(it){
     var li=el("li"),t=el("div","t");t.textContent=it.title;
     if(it.note){var m=document.createElement("small");m.textContent=it.note;t.appendChild(m)}
     li.dataset.id=it.id;
-    var h=el("button","h");h.type="button";h.textContent="≡";h.setAttribute("aria-label","Geser "+it.title+" (atau tombol panah atas/bawah)");
+    var h=el("button","h");h.type="button";h.setAttribute("aria-label","Geser "+it.title+" (atau fokus lalu tekan panah atas/bawah)");
     h.onpointerdown=function(e){startDrag(e,li,h)};
     h.onkeydown=function(e){if(e.key==="ArrowUp"||e.key==="ArrowDown"){e.preventDefault();moveKey(it.id,e.key==="ArrowUp"?-1:1)}};
     li.appendChild(h);li.appendChild(t);var all=true;
@@ -160,19 +174,23 @@ function applyOrder(ids){
   ids.forEach(function(id,i){var it=S.items.find(function(x){return x.id===id});if(it&&it.sort!==i)setItem(Object.assign({},it,{sort:i}))});
 }
 function startDrag(e,li,h){
-  e.preventDefault();dragging=true;li.classList.add("drag");h.setPointerCapture(e.pointerId);
+  if(e.button>0)return;
+  e.preventDefault();dragging=true;li.classList.add("drag");
   var ul=li.parentNode;
-  h.onpointermove=function(ev){
+  try{h.setPointerCapture(e.pointerId)}catch(x){}
+  function mv(ev){
     if(ev.clientY<90)window.scrollBy(0,-12);else if(ev.clientY>window.innerHeight-90)window.scrollBy(0,12);
     var t=document.elementFromPoint(ul.getBoundingClientRect().left+24,ev.clientY);
     var o=t&&t.closest?t.closest("#list > li"):null;
     if(o&&o!==li){var r=o.getBoundingClientRect();ul.insertBefore(li,ev.clientY>r.top+r.height/2?o.nextSibling:o)}
-  };
-  h.onpointerup=h.onpointercancel=function(){
-    h.onpointermove=h.onpointerup=h.onpointercancel=null;li.classList.remove("drag");
+  }
+  function end(){
+    document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",end);document.removeEventListener("pointercancel",end);
+    li.classList.remove("drag");
     var ids=Array.prototype.map.call(ul.children,function(l){return l.dataset.id});
     dragging=false;applyOrder(ids);render();
-  };
+  }
+  document.addEventListener("pointermove",mv);document.addEventListener("pointerup",end);document.addEventListener("pointercancel",end);
 }
 function moveKey(id,d){
   var ids=visible(cur).map(function(x){return x.id}),i=ids.indexOf(id),j=i+d;
