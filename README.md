@@ -24,4 +24,5 @@ Atau unggah folder ke GitHub lalu impor repositori itu di vercel.com. Tidak perl
 ## Cara kerja singkat
 - Perubahan disimpan di HP dulu, lalu dikirim ke Supabase saat ada sinyal.
 - Halaman memperbarui data tiap 8 detik dan saat dibuka kembali, bukan realtime.
+- Tombol ≡ di kiri tiap barang dipakai untuk menggeser urutan (di keyboard: fokus ke ≡ lalu tekan panah atas/bawah). Urutan ikut tersinkron ke teman.
 - Tombol × menyembunyikan barang (bisa dikembalikan dari "Item tersembunyi").

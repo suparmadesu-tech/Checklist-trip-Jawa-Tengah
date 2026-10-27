@@ -27,7 +27,9 @@ button{padding:.5rem .8rem;border-radius:8px;border:1px solid var(--line);backgr
 .tabs span{display:block;font-size:.85rem;font-weight:500}
 .note{color:var(--muted);font-size:.9rem;margin:.25rem 0 .75rem}
 ul{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-li{display:flex;align-items:center;gap:.6rem;padding:.65rem .75rem .65rem 1rem;border-top:1px solid var(--line)}
+li{display:flex;align-items:center;gap:.5rem;padding:.65rem .75rem .65rem .4rem;border-top:1px solid var(--line)}
+.h{border:0;background:none;color:var(--muted);font-size:1.3rem;line-height:1;padding:.4rem .35rem;touch-action:none;cursor:grab}
+li.drag{background:var(--bg);box-shadow:0 4px 14px rgba(0,0,0,.28);position:relative;z-index:2}
 li:first-child{border-top:0}
 li .t{flex:1}li .t small{display:block;color:var(--muted);font-size:.82rem}
 li.done .t{color:var(--muted);text-decoration:line-through}
@@ -66,7 +68,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-off
 <div id="toast" role="status"><span id="toast-t"></span><button id="toast-b" type="button">Batalkan</button></div>
 <script>
 // Isi dua nilai ini dari Supabase: Project Settings > API
-var CFG={url:"sb_publishable_oV75JSPiIuuXxFqCXQsIpw_IBS77abl",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNrbGJ6b3d1c2Jwc2t3YnhkcmllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwNDUwMjksImV4cCI6MjEwODYyMTAyOX0.v9xtEMag-qjic0lo4lYiUVCrVRXPIX6NnskPlhCtbxg"};
+var CFG={url:"PASTE_SUPABASE_URL",key:"PASTE_ANON_KEY"};
 
 var GROUPS=[
 {id:"w",name:"Wajib",note:"Tidak boleh ketinggalan. Satu centang untuk berdua.",items:[["KTP, SIM C, dan STNK motor"],["Uang tunai dan e-wallet"],["Helm layak pakai"],["Jas hujan 2 set","Sore di Kopeng sering hujan"],["Sarung tangan berkendara"],["HP, powerbank, dan kabel charger"],["P3K dan obat pribadi"],["Headlamp atau senter + baterai cadangan"],["Tenda lengkap (flysheet, pasak, tali)","Sewa di dekat Kopeng, misalnya Mayara Adventure"],["Cek motor: ban, rem, rantai, oli, lampu"],["BBM penuh sebelum berangkat"]]},
@@ -80,7 +82,7 @@ function $(i){return document.getElementById(i)}
 function rnd(n){var a=new Uint8Array(n),s="",c="abcdefghjkmnpqrstuvwxyz23456789";crypto.getRandomValues(a);a.forEach(function(b){s+=c[b%31]});return s}
 var code=(location.hash||"").slice(1);
 if(code.length<10){code=rnd(14);history.replaceState(null,"","#"+code)}
-var KEY="trip:"+code,S,cur="w",busy=false,online=true,toastT;
+var KEY="trip:"+code,S,cur="w",busy=false,online=true,toastT,dragging=false;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.items)S={items:DEFAULTS.slice(),checks:{},q:[]};
 var slot="";try{slot=localStorage.getItem("slot")||""}catch(e){}
@@ -115,16 +117,21 @@ function toast(msg,fn){$("toast-t").textContent=msg;$("toast").style.display="fl
 function el(t,c){var e=document.createElement(t);if(c)e.className=c;return e}
 
 function render(){
+  if(dragging)return;
   $("who").hidden=!!slot;
   var tabs=$("tabs");tabs.innerHTML="";
   GROUPS.forEach(function(g){var s=stats(g.id),b=el("button");b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",g.id===cur);
     b.innerHTML=g.name+"<span>"+s[0]+"/"+s[1]+"</span>";b.onclick=function(){cur=g.id;render()};tabs.appendChild(b)});
-  var G=GROUPS.filter(function(x){return x.id===cur})[0];$("note").textContent=G.note;
+  var G=GROUPS.filter(function(x){return x.id===cur})[0];$("note").textContent=G.note+" Geser ≡ untuk mengurutkan.";
   var ul=$("list");ul.innerHTML="";
   visible(cur).forEach(function(it){
     var li=el("li"),t=el("div","t");t.textContent=it.title;
     if(it.note){var m=document.createElement("small");m.textContent=it.note;t.appendChild(m)}
-    li.appendChild(t);var all=true;
+    li.dataset.id=it.id;
+    var h=el("button","h");h.type="button";h.textContent="≡";h.setAttribute("aria-label","Geser "+it.title+" (atau tombol panah atas/bawah)");
+    h.onpointerdown=function(e){startDrag(e,li,h)};
+    h.onkeydown=function(e){if(e.key==="ArrowUp"||e.key==="ArrowDown"){e.preventDefault();moveKey(it.id,e.key==="ArrowUp"?-1:1)}};
+    li.appendChild(h);li.appendChild(t);var all=true;
     slots(cur).forEach(function(s,idx){
       var w=el("label","cb"),c=document.createElement("input");c.type="checkbox";c.checked=!!S.checks[it.id+"|"+s];
       c.setAttribute("aria-label",it.title+(cur==="p"?(idx?" (Dia)":" (Aku)"):""));
@@ -148,6 +155,30 @@ function render(){
   if(!sb)chip.textContent="Mode lokal: Supabase belum diisi";
   else if(!online||S.q.length){chip.textContent="Offline, "+S.q.length+" perubahan menunggu";chip.className="chip bad"}
   else chip.textContent="Tersambung dan tersinkron";
+}
+function applyOrder(ids){
+  ids.forEach(function(id,i){var it=S.items.find(function(x){return x.id===id});if(it&&it.sort!==i)setItem(Object.assign({},it,{sort:i}))});
+}
+function startDrag(e,li,h){
+  e.preventDefault();dragging=true;li.classList.add("drag");h.setPointerCapture(e.pointerId);
+  var ul=li.parentNode;
+  h.onpointermove=function(ev){
+    if(ev.clientY<90)window.scrollBy(0,-12);else if(ev.clientY>window.innerHeight-90)window.scrollBy(0,12);
+    var t=document.elementFromPoint(ul.getBoundingClientRect().left+24,ev.clientY);
+    var o=t&&t.closest?t.closest("#list > li"):null;
+    if(o&&o!==li){var r=o.getBoundingClientRect();ul.insertBefore(li,ev.clientY>r.top+r.height/2?o.nextSibling:o)}
+  };
+  h.onpointerup=h.onpointercancel=function(){
+    h.onpointermove=h.onpointerup=h.onpointercancel=null;li.classList.remove("drag");
+    var ids=Array.prototype.map.call(ul.children,function(l){return l.dataset.id});
+    dragging=false;applyOrder(ids);render();
+  };
+}
+function moveKey(id,d){
+  var ids=visible(cur).map(function(x){return x.id}),i=ids.indexOf(id),j=i+d;
+  if(j<0||j>=ids.length)return;
+  ids.splice(j,0,ids.splice(i,1)[0]);applyOrder(ids);render();
+  var h=document.querySelector('li[data-id="'+id+'"] .h');if(h)h.focus();
 }
 $("add").onsubmit=function(e){e.preventDefault();var t=$("n-title").value.trim();if(!t)return;
   var dup=visible(cur).some(function(i){return i.title.toLowerCase()===t.toLowerCase()});
